@@ -38,8 +38,8 @@ def make_layout() -> Layout:
         Layout(name="footer", size=3),
     )
     layout["main"].split_row(
-        Layout(name="left"),
-        Layout(name="right"),
+        Layout(name="left", ratio=1),
+        Layout(name="right", ratio=2),
     )
     layout["left"].split_column(
         Layout(name="local_view", ratio=1),
@@ -52,36 +52,41 @@ def make_layout() -> Layout:
     return layout
 
 def format_grid(grid_str):
-    """Adds colors to the ASCII grid."""
+    """Refined professional color palette."""
     text = Text()
     for char in grid_str:
-        if char == '#': text.append(char, style="bold black on grey37")
-        elif char == '.': text.append(char, style="white")
-        elif char == '@': text.append(char, style="bold yellow")
-        elif char == 'K': text.append(char, style="bold gold1")
-        elif char == '+': text.append(char, style="bold red")
-        elif char == '>': text.append(char, style="bold green")
-        elif char == '?': text.append(char, style="dim white")
+        if char == '#': text.append(char, style="dim white") # Subdued walls
+        elif char == '.': text.append(char, style="bright_black") # Minimal floor
+        elif char == '@': text.append(char, style="bold green") # High-vis agent
+        elif char == 'K': text.append(char, style="bold amber") # Important item
+        elif char == '+': text.append(char, style="bold orange1") # Interactable
+        elif char == '>': text.append(char, style="bold bright_green") # Objective
+        elif char == '?': text.append(char, style="bright_black") # Hidden
         else: text.append(char)
     return text
 
 def run_simulation(max_steps=100):
+    # Quick API Check
+    api_key = os.getenv("GEMINI_API_KEY")
+    if not api_key or api_key == "YOUR_API_KEY_HERE":
+        console.print("[bold red]SYSTEM_ERROR:[/bold red] KEY_NOT_FOUND in .env context.")
+        return
+
     env = DungeonEnv(MAP_DATA)
     try:
         agent = GeminiAgent()
     except ValueError as e:
-        console.print(f"[red]Configuration Error:[/red] {e}")
+        console.print(f"[red]INIT_FAILURE:[/red] {e}")
         return
 
     layout = make_layout()
-    layout["header"].update(Panel(Text("LLM Dungeon Crawler - Advanced Agent Harness", justify="center", style="bold cyan")))
-    layout["footer"].update(Panel(Text("Status: Initializing...", justify="center")))
+    layout["header"].update(Panel(Text("SPATIAL_LOGIC_ENGINE v1.0.4", justify="left", style="bold white"), border_style="bright_black"))
+    layout["footer"].update(Panel(Text("WAITING_FOR_INITIAL_STATE...", justify="left"), border_style="bright_black"))
 
     with Live(layout, refresh_per_second=4, screen=True):
         obs = env.get_observation()
         done = False
         step = 0
-        last_reasoning = "Thinking..."
 
         while not done and step < max_steps:
             step += 1
@@ -90,33 +95,32 @@ def run_simulation(max_steps=100):
             result = agent.act(obs)
             reasoning = result.get("reasoning", "...")
             action = result.get("action", "idle")
-            last_reasoning = reasoning
 
             # Update UI before step
-            layout["reasoning"].update(Panel(reasoning, title="Agent Reasoning", border_style="yellow"))
-            layout["footer"].update(Panel(f"Step {step} | Action: {action} | Status: {env.message}", style="bold white"))
+            layout["reasoning"].update(Panel(reasoning, title="DECISION_LOGIC", border_style="white"))
+            layout["footer"].update(Panel(f"STEP: {step:03} | ACTION: {action.upper()} | MSG: {env.message.upper()}", style="bold white", border_style="bright_black"))
             
             # Environment updates
             obs, done = env.step(action)
             
             # Update UI panels
             local_view_text = format_grid(obs.split("Local View (5x5):\n")[1].split("\n\n")[0])
-            layout["local_view"].update(Panel(local_view_text, title="Local FOV", border_style="blue"))
+            layout["local_view"].update(Panel(local_view_text, title="LOCAL_FOV_SCAN", border_style="white"))
             
             mental_map_text = format_grid(env.get_mental_map())
-            layout["mental_map"].update(Panel(mental_map_text, title="Agent's Mental Map", border_style="magenta"))
+            layout["mental_map"].update(Panel(mental_map_text, title="PERSISTENT_SPATIAL_STATE", border_style="white"))
             
             stats_table = Table.grid(expand=True)
             stats_table.add_column(justify="left")
-            stats_table.add_row(f"[bold red]Health:[/bold red] {env.health}")
-            stats_table.add_row(f"[bold gold1]Inventory:[/bold gold1] {', '.join(env.inventory) if env.inventory else 'Empty'}")
-            layout["stats"].update(Panel(stats_table, title="Stats", border_style="green"))
+            stats_table.add_row(f"[bold white]VITAL_SIGNS:[/bold white] {env.health}%")
+            stats_table.add_row(f"[bold white]ASSET_BUFFER:[/bold white] {', '.join(env.inventory) if env.inventory else 'NULL'}")
+            layout["stats"].update(Panel(stats_table, title="TELEMETRY", border_style="white"))
 
             if done:
-                layout["footer"].update(Panel("[bold green]SUCCESS: AGENT ESCAPED THE DUNGEON![/bold green]", border_style="green"))
+                layout["footer"].update(Panel("[bold green]TERMINAL_STATE_REACHED: GOAL_COMPLETED[/bold green]", border_style="green"))
                 break
             
-            time.sleep(0.5)
+            time.sleep(5)
 
         if not done:
             layout["footer"].update(Panel("[bold red]FAILED: STEP LIMIT REACHED[/bold red]", border_style="red"))

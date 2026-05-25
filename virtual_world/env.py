@@ -20,6 +20,13 @@ class DungeonEnv:
         self.grid[self.agent_pos[0]][self.agent_pos[1]] = '.'
         self._update_explored()
 
+    def _find_agent(self):
+        for r in range(self.height):
+            for c in range(self.width):
+                if self.grid[r][c] == '@':
+                    return (r, c)
+        raise ValueError("Agent '@' not found in map data.")
+
     def _update_explored(self, view_size=5):
         r_c, c_c = self.agent_pos
         for r in range(r_c - view_size // 2, r_c + view_size // 2 + 1):
@@ -122,7 +129,8 @@ class DungeonEnv:
             target = self.grid[new_r][new_c]
             if target in ['.', 'K', '>']:
                 self.agent_pos = (new_r, new_c)
-                self.message = f"You moved {action.split('_')[1]}."
+                direction = action.split('_')[1] if '_' in action else action
+                self.message = f"You moved {direction}."
             elif target == '#':
                 self.message = "You bumped into a wall."
             elif target == '+':

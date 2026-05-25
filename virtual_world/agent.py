@@ -38,7 +38,7 @@ Always respond in JSON format with:
 """
 
 class GeminiAgent:
-    def __init__(self, api_key=None, model_id="gemini-2.0-flash-exp"):
+    def __init__(self, api_key=None, model_id="gemini-2.0-flash"):
         self.api_key = api_key or os.getenv("GEMINI_API_KEY")
         if not self.api_key:
             raise ValueError("GEMINI_API_KEY not found in environment or provided.")
@@ -56,11 +56,11 @@ class GeminiAgent:
         # For simplicity in this demo, we'll just send the system prompt + history + current prompt.
         
         contents = [
-            types.Content(role="user", parts=[types.Part.from_text(SYSTEM_PROMPT)]),
+            types.Content(role="user", parts=[types.Part(text=SYSTEM_PROMPT)]),
             # Add history here if needed, but for now let's try just the current state + short history
-            *[types.Content(role="user" if i % 2 == 0 else "model", parts=[types.Part.from_text(h)]) 
+            *[types.Content(role="user" if i % 2 == 0 else "model", parts=[types.Part(text=h)]) 
               for i, h in enumerate(self.history[-10:])],
-            types.Content(role="user", parts=[types.Part.from_text(prompt)])
+            types.Content(role="user", parts=[types.Part(text=prompt)])
         ]
 
         try:
@@ -81,5 +81,13 @@ class GeminiAgent:
             
             return data
         except Exception as e:
-            print(f"Error communicating with Gemini: {e}")
-            return {"reasoning": "Error occurred, idling.", "action": "idle"}
+            error_msg = str(e)
+            # Check for common errors to provide better advice
+            if "403" in error_msg:
+                reason = "API Key error (403). Check if your key is correct and has Gemini API access."
+            elif "429" in error_msg:
+                reason = "Quota exceeded (429). You are sending too many requests."
+            else:
+                reason = f"API Error: {error_msg}"
+            
+            return {"reasoning": reason, "action": "idle"}
