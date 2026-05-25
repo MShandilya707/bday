@@ -1,58 +1,39 @@
-# LLM Dungeon Crawler
+# Autonomous LLM Agent: Spatial Reasoning & Environment Harness
 
-A system that places a Gemini-powered LLM agent into a virtual Rogue-like dungeon. The agent must perceive its surroundings, reason about its goals, and take actions to find a key and escape.
+This project implements an intelligent agent harness that places a Large Language Model (Gemini 2.0 Flash) into a dynamic, partially-observable 2D dungeon environment. 
 
-## Project Structure
-- `env.py`: The 2D grid dungeon environment.
-- `agent.py`: The LLM agent harness (interfaces with Google GenAI).
-- `main.py`: The simulation loop.
-- `requirements.txt`: Python dependencies.
+The core challenge addressed here is the **perceptual gap**: how to bridge a high-level reasoning engine (LLM) with a low-level state machine (the environment) while maintaining state consistency and spatial memory.
+
+## Technical Architecture
+
+### 1. The Environment Harness (`env.py`)
+Unlike a standard full-observation grid, this system uses a **Field of View (FOV)** mechanic. The agent only receives a 5x5 local ASCII slice of the world at any given time.
+- **State Management**: Tracks entity positions (Agent, Keys, Doors, Exit).
+- **Persistent Mental Map**: To solve the "short-term memory" issue common in LLM agents, the harness maintains a global occupancy grid of every tile the agent has visited. This is fed back to the model as a "Mental Map," allowing for long-term path planning and efficient exploration of unknown areas.
+
+### 2. The Agent Logic (`agent.py`)
+The agent isn't just generating text; it functions as a controller within a closed loop.
+- **Structured Reasoning**: The system enforces a JSON schema that requires the model to output its "reasoning" before its "action." This forces the model to use its latent chain-of-thought capabilities to process the mental map before committing to a move.
+- **Context Management**: History is pruned to maintain a high signal-to-noise ratio, focusing on recent observations and the cumulative mental map.
+
+### 3. Real-time Dashboard (`main.py`)
+I implemented a terminal-based dashboard using `rich` to visualize the agent's internal state. This includes:
+- **Tactical View**: Current local FOV.
+- **Strategic View**: The cumulative Mental Map showing explored vs. unexplored (`?`) territory.
+- **Thought Stream**: Live output of the agent's reasoning process.
 
 ## How to Run
 
-1. **Install Dependencies:**
+1. **Install requirements**:
    ```bash
-   pip install -r requirements.txt
+   pip install rich google-genai python-dotenv
    ```
-
-2. **Set up API Key:**
-   Create a `.env` file in the `virtual_world` directory and add your Google GenAI API key:
-   ```env
-   GEMINI_API_KEY=your_api_key_here
-   ```
-
-3. **Run the Simulation:**
+2. **Configuration**:
+   Add your `GEMINI_API_KEY` to a `.env` file in the root directory.
+3. **Execute**:
    ```bash
    python main.py
    ```
 
-### Advanced Features (Winning Upgrades)
-- **Mental Map & Spatial Memory**: The environment now tracks every tile the agent has visited. The agent receives a "Mental Map" string (using `?` for unknown areas), allowing it to reason about where it has been and where it needs to explore next.
-- **Rich CLI Dashboard**: Using the `rich` library, the simulation now runs in a beautiful full-screen dashboard with:
-    - **Local FOV**: A 5x5 color-coded view of immediate surroundings.
-    - **Agent's Mental Map**: A persistent view of everything the agent has "remembered."
-    - **Thought Stream**: A dedicated pane showing the LLM's step-by-step reasoning.
-    - **Live Stats**: Real-time health, inventory, and action tracking.
-
-### Design Choices
-
-### Environment
-The environment is a **Rogue-like 2D Grid World**. This was chosen because:
-- It is easily representable in text (ASCII), which LLMs excel at parsing.
-- It allows for complex logic (keys, doors, pathfinding) without requiring a graphical engine.
-- **Dynamic Mental Map**: By providing the agent with a memory of visited tiles, we solve the common "looping" problem in LLM agents and prove the model can handle long-term planning.
-
-### Observation Representation
-The agent receives:
-- **Local View (5x5)**: Immediate tactical awareness.
-- **Global Mental Map**: Strategic awareness of the explored world.
-- **Health and Inventory** status.
-- **Contextual Messages**.
-
-### Action Space
-- `move_up`, `move_down`, `move_left`, `move_right`: Simple navigation.
-- `grab`: Interaction with items on the same tile.
-- `interact`: Interaction with adjacent tiles (opening doors, exiting).
-
-### LLM Integration
-The system uses the `google-genai` SDK with the `gemini-2.0-flash-exp` model. The agent is prompted to output its reasoning and actions in a structured **JSON format**, ensuring reliable parsing and allowing us to peek into its "thought process."
+## Design Decisions: Why a Grid World?
+I chose a 2D Rogue-like grid because it isolates the hardest part of agent design: **spatial navigation and state-based goal completion.** By using ASCII representations, I can maximize the LLM's token efficiency while still creating complex scenarios (e.g., "find the key in room A to unlock the door in room B") that test the model's ability to plan several steps ahead.
