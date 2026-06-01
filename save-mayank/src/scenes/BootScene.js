@@ -1,5 +1,14 @@
 import Phaser from 'phaser';
 
+// Import assets to ensure Vite handles paths correctly
+import forestBg from '../../public/assets/forest_background.png';
+import castleBg from '../../public/assets/castle_background.png';
+import spaceBg from '../../public/assets/space_background.png';
+import heroineImg from '../../public/assets/heroine.png';
+import zephyrImg from '../../public/assets/zephyr.png';
+import enemyForestImg from '../../public/assets/enemy_forest.png';
+import mayankImg from '../../public/assets/mayank.png';
+
 export default class BootScene extends Phaser.Scene {
     constructor() {
         super('BootScene');
@@ -7,15 +16,15 @@ export default class BootScene extends Phaser.Scene {
 
     preload() {
         // Load custom backgrounds
-        this.load.image('bg_forest_custom', 'assets/forest_background.png');
-        this.load.image('bg_castle_custom', 'assets/castle_background.png');
-        this.load.image('bg_space_custom', 'assets/space_background.png');
+        this.load.image('bg_forest_custom', forestBg);
+        this.load.image('bg_castle_custom', castleBg);
+        this.load.image('bg_space_custom', spaceBg);
 
         // Load custom characters
-        this.load.image('heroine_custom', 'assets/heroine.png');
-        this.load.image('zephyr_custom', 'assets/zephyr.png');
-        this.load.image('enemy_forest_custom', 'assets/enemy_forest.png');
-        this.load.image('mayank_custom', 'assets/mayank.png');
+        this.load.image('heroine_custom', heroineImg);
+        this.load.image('zephyr_custom', zephyrImg);
+        this.load.image('enemy_forest_custom', enemyForestImg);
+        this.load.image('mayank_custom', mayankImg);
     }
 
     create() {

@@ -1,5 +1,13 @@
 import Phaser from 'phaser';
 
+// Import assets for robust path handling
+import chest1 from '../../public/assets/closed_chest.png';
+import chest2 from '../../public/assets/chest_25_open.png';
+import chest3 from '../../public/assets/chest_50_open.png';
+import chest4 from '../../public/assets/chest_75_open.png';
+import chest5 from '../../public/assets/chest_open.png';
+import scrollImg from '../../public/assets/scoll_open.png';
+
 export default class IntroScene extends Phaser.Scene {
     constructor() {
         super('IntroScene');
@@ -12,19 +20,21 @@ export default class IntroScene extends Phaser.Scene {
             "Over the past two years\nyou have been my friend,\nconfidante, lover and\ninspiration...",
             "But most importantly\nyou have always been\nthe one person\nwho saves me.",
             "I dont have a lot to\noffer to you right now\nbut I am waiting for u.",
+            "I have a lot more to\noffer to you right now\nbut I am waiting for u.",
             "I have a lot more to\nsay to you but for now\nmy sweet, enjoy this\npresent I made you."
         ];
         this.currentPage = 0;
     }
-preload() {
-    // Load the custom named chest images (renamed for URL compatibility)
-    this.load.image('chest_frame_1', 'assets/closed_chest.png');
-    this.load.image('chest_frame_2', 'assets/chest_25_open.png');
-    this.load.image('chest_frame_3', 'assets/chest_50_open.png');
-    this.load.image('chest_frame_4', 'assets/chest_75_open.png');
-    this.load.image('chest_frame_5', 'assets/chest_open.png');
 
-        this.load.image('scroll_custom', 'assets/scoll_open.png');
+    preload() {
+        // Load the custom named chest images using imported URLs
+        this.load.image('chest_frame_1', chest1);
+        this.load.image('chest_frame_2', chest2);
+        this.load.image('chest_frame_3', chest3);
+        this.load.image('chest_frame_4', chest4);
+        this.load.image('chest_frame_5', chest5);
+
+        this.load.image('scroll_custom', scrollImg);
     }
 
     create() {
